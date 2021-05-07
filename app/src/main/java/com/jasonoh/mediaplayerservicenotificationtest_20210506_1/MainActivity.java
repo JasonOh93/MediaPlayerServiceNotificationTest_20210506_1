@@ -19,6 +19,13 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jasonoh.kotlinre.HelloKt;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+
 public class MainActivity extends AppCompatActivity {
     TextView tvTime;
     TextureView ttvVideo;
@@ -141,6 +148,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+//    rx java로 AsyncTask 이용
+    Disposable backgroundTask;
+    public void BackgroundTask(){
+        backgroundTask = Observable.fromCallable(()->{
+
+            myService.playVideo(surfaceTexture);
+
+            return false;
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(result ->{
+
+                    if(myService.getMediaPlay() != null && !result){
+                        progressBar.setVisibility(View.GONE);
+//                        todo :: 여기서 명시적으로 start를 해줘야만 하는지는 추후 알아봐야 하는 과정...
+                        myService.getMediaPlay().start();
+                        Log.e("TAG", myService.getMediaPlay().isPlaying() + "   rx 자바에서 플레이 중인지??");
+//                        initSeekBar();
+
+                        skbVideo.setMax(myService.getMediaPlay().getDuration());
+                        Log.e("TAG", myService.getMediaPlay().getDuration() + ""); // 125952
+                        seekBarPlay();
+                    }
+                    backgroundTask.dispose();
+                });
+    }
+
     SurfaceTexture surfaceTexture;
 
     TextureView.SurfaceTextureListener ttvVideoListener = new TextureView.SurfaceTextureListener() {
@@ -152,16 +187,24 @@ public class MainActivity extends AppCompatActivity {
                 surfaceTexture = surface;
 
                 if(myService != null && surfaceTexture != null){
-                    myService.playVideo(surfaceTexture);
+//                    myService.playVideo(surfaceTexture);
+
+//                    todo :: 코틀린에서 async await 하는 방법!!
+//                    Coroutine.Companion.BackgroundTask(myService, surfaceTexture, MainActivity.this);
+//                    Log.e("TAG",  "코틀린에서 온 값");
+
+                    BackgroundTask();
+
+//                    Toast.makeText(MainActivity.this, HelloKt.formatMessage("안녕하세요") + " asdf ",  Toast.LENGTH_SHORT).show();
 
                     // (MediaPlayer)mp가 null이 아니라면
-                    if(myService.getMediaPlay() != null){
-                        progressBar.setVisibility(View.GONE);
-//                        initSeekBar();
-                        skbVideo.setMax(myService.getMediaPlay().getDuration());
-                        Log.e("TAG", myService.getMediaPlay().getDuration() + ""); // 0
-                        seekBarPlay();
-                    }
+//                    if(myService.getMediaPlay() != null){
+//                        progressBar.setVisibility(View.GONE);
+////                        initSeekBar();
+//                        skbVideo.setMax(myService.getMediaPlay().getDuration());
+//                        Log.e("TAG", myService.getMediaPlay().getDuration() + ""); // 0
+//                        seekBarPlay();
+//                    }
                 }
             }catch (Exception e){
                 e.printStackTrace();
@@ -216,16 +259,25 @@ public class MainActivity extends AppCompatActivity {
         switch (view.getId()){
             case R.id.btn_start:
                 if(myService != null && surfaceTexture != null){
-                    myService.playVideo(surfaceTexture);
+
+//                    todo :: 스타트 버튼 누를시에 !!!  MainActivity
+
+                    BackgroundTask();
+
+//                    myService.playVideo(surfaceTexture);
 
 //            todo ::/// 여기서 실행시 문제는
 //             1. 프로그레스바가 바로 안사라짐 - 한번 더 스타트눌러야 사라진다. 그 이유는 맞다 한번 눌렀을 경우 영상은 실행되지만 처음에는 영상이 플레이중이 아니기 때문이다.
 //             2. onDestroy 되었을때 재실행시 소리는 나는데 영상이 안나옴
-                    if(myService.getMediaPlay() != null && myService.getMediaPlay().isPlaying()){
-                        skbVideo.setMax(myService.getMediaPlay().getDuration());
-                        seekBarPlay();
-                        progressBar.setVisibility(View.GONE);
-                    }
+
+//                    if(myService.getMediaPlay() != null){
+//                        Log.e("TAG", myService.getMediaPlay().isPlaying() + "스타트 버튼 클릭시 실행되는지??");
+//                        myService.getMediaPlay().start();
+//                        skbVideo.setMax(myService.getMediaPlay().getDuration());
+//                        seekBarPlay();
+//                        progressBar.setVisibility(View.GONE);
+//                        Log.e("TAG", myService.getMediaPlay().isPlaying() + "스타트 버튼 클릭시 실행되는지??");
+//                    }
 
                 }
                 break;

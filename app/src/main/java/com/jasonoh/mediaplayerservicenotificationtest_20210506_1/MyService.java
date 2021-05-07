@@ -31,6 +31,12 @@ public class MyService extends Service {
 
     boolean isPlaying = false;
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        if (mp==null) mp = new MediaPlayer();
+    }
+
     // startService()메소드로  실행했을때만 실행되는 메소드
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -61,7 +67,7 @@ public class MyService extends Service {
                         //오레오버전(api 26) 부터 새로운 "알림채널"이라는 것이 생김
                         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
                             //알림 채널 객체 생성
-                            NotificationChannel channel = new NotificationChannel("ch01", "channel #01", NotificationManager.IMPORTANCE_UNSPECIFIED);
+                            NotificationChannel channel = new NotificationChannel("ch01", "channel #01", NotificationManager.IMPORTANCE_LOW);
                             notificationManager.createNotificationChannel( channel );
                             builder = new NotificationCompat.Builder( this, "ch01" );
                         }else {
@@ -142,10 +148,9 @@ public class MyService extends Service {
         url3 ="android.resource://" + getPackageName() + "/raw/sample_mp4_file";
 
         if(mp == null) {
-//            mp = MediaPlayer.create( this, R.raw.sample_mp4_file );
-//            mp.setLooping(true);
-
             try{
+                Log.e("TAG", "mp == null");
+//                todo :: Service 여기서 새로 new MediaPlayer를 명시해주는데 왜 바로 반영이 안되는 것일까..???
                 mp = new MediaPlayer();
                 initMediaPlayer(surfaceTexture);
             } catch (Exception e){
@@ -160,7 +165,7 @@ public class MyService extends Service {
             }
         }
 
-        mp.start(); //처음 실행 또는 이어하기(resume)
+//        mp.start(); //처음 실행 또는 이어하기(resume)
 //        Toast.makeText(this,  mp.getDuration() + "", Toast.LENGTH_SHORT).show();
     }
     public void playVideo(){
@@ -176,7 +181,6 @@ public class MyService extends Service {
 //            mp.start();
 //            Toast.makeText(MyService.this, mp.isPlaying() + "  ::  aaa", Toast.LENGTH_SHORT).show();
 //            처음 줄때는 여기서 주어야한다!!
-//            isPlaying = mp.isPlaying();
         }
     };
 
@@ -205,11 +209,6 @@ public class MyService extends Service {
 //        mp.start();
 
         return mp;
-    }
-
-    public boolean getMediaPlayingBoolean(){
-        mp.start();
-        return isPlaying;
     }
 
 }// MyService
