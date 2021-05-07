@@ -26,6 +26,7 @@ public class MyService extends Service {
     MediaPlayer mp;
     String url1 = "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4";
     String url3;
+    String url2 = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
     public static String MESSAGE_KEY = "MESSAGE_KEY";
 
@@ -132,7 +133,7 @@ public class MyService extends Service {
     public void initMediaPlayer(SurfaceTexture surfaceTexture){
        try{
            mp.setSurface(new Surface(surfaceTexture));
-           Uri uri = Uri.parse(url3);
+           Uri uri = Uri.parse(url2);
            mp.setDataSource(MyService.this, uri);
            mp.setLooping(false);
            mp.prepareAsync();

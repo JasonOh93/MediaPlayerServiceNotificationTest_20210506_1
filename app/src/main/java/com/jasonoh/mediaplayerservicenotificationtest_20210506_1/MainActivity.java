@@ -151,6 +151,9 @@ public class MainActivity extends AppCompatActivity {
 //    rx java로 AsyncTask 이용
     Disposable backgroundTask;
     public void BackgroundTask(){
+
+        progressBar.setVisibility(View.VISIBLE);
+
         backgroundTask = Observable.fromCallable(()->{
 
             myService.playVideo(surfaceTexture);
