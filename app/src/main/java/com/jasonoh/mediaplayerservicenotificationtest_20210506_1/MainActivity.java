@@ -202,21 +202,7 @@ public class MainActivity extends AppCompatActivity {
 
 //                        myService.getMediaPlay().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 //                            @Override
-//                            public void onCompletion(MediaPlayer mp) {
-//                                mp.start();
-//                                Log.e("TAG", "complete ::: " + mp.isPlaying());
-//
-//                                if(mp.isPlaying()){
-//                                    progressBar.setVisibility(View.GONE);
-//                                    Log.e("TAG", myService.getMediaPlay().isPlaying() + "   rx 자바에서 플레이 중인지??");
-////                        initSeekBar();
-//
-//                                    skbVideo.setMax(myService.getMediaPlay().getDuration());
-//                                    Log.e("TAG", myService.getMediaPlay().getDuration() + ""); // 125952
-//                                    seekBarPlay();
-//                                }
-//
-//                            }
+//                            public void onCompletion(MediaPlayer mp) {}
 //                        });
 
                         progressBar.setVisibility(View.GONE);
@@ -244,9 +230,10 @@ public class MainActivity extends AppCompatActivity {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
         if(isInPictureInPictureMode){
             // Hide the full-screen UI (controls, etc.) while in picture-in-picture mode.
-            Log.e("TAG", "media player PIP모드인가?   :::   " + isInPictureInPictureMode);
+            Log.e("TAG", "media player PIP모드 true 인가?   :::   " + isInPictureInPictureMode);
         }else{
             // Restore the full-screen UI.
+            Log.e("TAG", "media player PIP모드 false 인가?   :::   " + isInPictureInPictureMode);
         }
     }
 

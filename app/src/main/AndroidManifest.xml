@@ -16,11 +16,11 @@
         <activity android:name=".MainActivity"
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"
-            android:launchMode="singleTask"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:theme="@style/Theme.MediaPlayerServiceNotificationTest_20210506_1_MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW"/>
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
