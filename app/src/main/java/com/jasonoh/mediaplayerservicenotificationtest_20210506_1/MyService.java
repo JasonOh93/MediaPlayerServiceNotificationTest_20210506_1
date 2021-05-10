@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.PictureInPictureParams;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.SurfaceTexture;
@@ -13,6 +14,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+import android.util.Rational;
 import android.view.Surface;
 import android.view.TextureView;
 import android.widget.SeekBar;
@@ -154,6 +156,8 @@ public class MyService extends Service {
 //                todo :: Service 여기서 새로 new MediaPlayer를 명시해주는데 왜 바로 반영이 안되는 것일까..???
                 mp = new MediaPlayer();
                 initMediaPlayer(surfaceTexture);
+
+                Log.e("TAG", "mp == null 일때 mp.islplaying??   ::   " + mp.isPlaying());
             } catch (Exception e){
                 e.printStackTrace();
             }
@@ -161,6 +165,7 @@ public class MyService extends Service {
             try{
                 Log.e("TAG", "mp != null;");
                 initMediaPlayer(surfaceTexture);
+                Log.e("TAG", "mp != null 일때 mp.islplaying??   ::   " + mp.isPlaying());
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -169,9 +174,31 @@ public class MyService extends Service {
 //        mp.start(); //처음 실행 또는 이어하기(resume)
 //        Toast.makeText(this,  mp.getDuration() + "", Toast.LENGTH_SHORT).show();
     }
+
+    private Object pictureInPictureParamsBuilder;
+    {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
+        }else{
+            pictureInPictureParamsBuilder = null;
+        }
+    }
+
     public void playVideo(){
         mp.start(); //처음 실행 또는 이어하기(resume)
 //        Toast.makeText(this,  mp.isPlaying() + "", Toast.LENGTH_SHORT).show();
+
+        // todo  ::  임시로 서비스에서 실행시 pip모드 실행
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+//                            Build.VERSION_CODE.N이상일 경우 기본 PIP모드 가능
+//                            enterPictureInPictureMode();
+
+            Log.e("TAG", "Service에서 미디어플레이어의 size width :: " + mp.getVideoWidth() + "  height  :: " + mp.getVideoHeight());
+
+            Rational aspectRatio = new Rational(mp.getVideoWidth(), mp.getVideoHeight());
+            PictureInPictureParams build = ((PictureInPictureParams.Builder)pictureInPictureParamsBuilder).setAspectRatio(aspectRatio).build();
+//            enterPictureInPictureMode(build);
+        }
     }
 
     MediaPlayer.OnPreparedListener listener = new MediaPlayer.OnPreparedListener() {

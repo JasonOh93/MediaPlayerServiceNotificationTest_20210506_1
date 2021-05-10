@@ -80,6 +80,12 @@
                     android:text="stop"
                     android:onClick="clickBtn"/>
             </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_start_pip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="pip mode"/>
         </LinearLayout>
 
     </ScrollView>

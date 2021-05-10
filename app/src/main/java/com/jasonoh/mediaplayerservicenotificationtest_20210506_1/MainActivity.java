@@ -1,25 +1,28 @@
 package com.jasonoh.mediaplayerservicenotificationtest_20210506_1;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.PictureInPictureParams;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.graphics.SurfaceTexture;
-import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.util.Rational;
 import android.view.TextureView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.jasonoh.kotlinre.HelloKt;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -53,6 +56,15 @@ public class MainActivity extends AppCompatActivity {
 
     }// onCreate method
 
+    private Object pictureInPictureParamsBuilder;
+//    {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+//            pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
+//        }else{
+//            pictureInPictureParamsBuilder = null;
+//        }
+//    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -69,9 +81,23 @@ public class MainActivity extends AppCompatActivity {
             bindService( intent, conn, 0 ); //flags가 0이면 AUTOCREATE 를 안한다는 의미 -> AUTOCREATE를 하면 startService를 안해도 되긴 하지만 좀 다르게 실행 됨.
             //bind 할때 만들어 진것이 없이 flags를 0을 주면 아무 것도 없다고 생각 해도 된다.
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
+            }else{
+                pictureInPictureParamsBuilder = null;
+            }
+
         }
 
     }// onResume
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // PIP 모드
+        minimize();
+    }
 
     @Override
     protected void onDestroy() {
@@ -81,6 +107,9 @@ public class MainActivity extends AppCompatActivity {
             intent.setAction("com.jasonoh.action.PLAY");
             intent.putExtra(MyService.MESSAGE_KEY, true);
             startService(intent);
+
+            // PIP 모드
+            minimize();
         }
 
     } // onDestroy method
@@ -158,13 +187,38 @@ public class MainActivity extends AppCompatActivity {
 
             myService.playVideo(surfaceTexture);
 
-            return false;
+            return myService.mp;
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result ->{
 
-                    if(myService.getMediaPlay() != null && !result){
+                    Log.e("TAG", result.isPlaying() + "   :::   ddd");
+                    Log.e("TAG", myService.getMediaPlay() + "   :::   ddd");
+
+                    if(myService.getMediaPlay() != null){
+
+//                        todo :: 영상이 끝나면 발동하는 listener
+
+//                        myService.getMediaPlay().setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//                            @Override
+//                            public void onCompletion(MediaPlayer mp) {
+//                                mp.start();
+//                                Log.e("TAG", "complete ::: " + mp.isPlaying());
+//
+//                                if(mp.isPlaying()){
+//                                    progressBar.setVisibility(View.GONE);
+//                                    Log.e("TAG", myService.getMediaPlay().isPlaying() + "   rx 자바에서 플레이 중인지??");
+////                        initSeekBar();
+//
+//                                    skbVideo.setMax(myService.getMediaPlay().getDuration());
+//                                    Log.e("TAG", myService.getMediaPlay().getDuration() + ""); // 125952
+//                                    seekBarPlay();
+//                                }
+//
+//                            }
+//                        });
+
                         progressBar.setVisibility(View.GONE);
 //                        todo :: 여기서 명시적으로 start를 해줘야만 하는지는 추후 알아봐야 하는 과정...
                         myService.getMediaPlay().start();
@@ -176,7 +230,42 @@ public class MainActivity extends AppCompatActivity {
                         seekBarPlay();
                     }
                     backgroundTask.dispose();
-                });
+
+                    // todo :: 미디어 PIP MODE start
+                    findViewById(R.id.btn_start_pip).setOnClickListener(v->{
+                        minimize();
+                    });
+                }
+                );
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        if(isInPictureInPictureMode){
+            // Hide the full-screen UI (controls, etc.) while in picture-in-picture mode.
+            Log.e("TAG", "media player PIP모드인가?   :::   " + isInPictureInPictureMode);
+        }else{
+            // Restore the full-screen UI.
+        }
+    }
+
+    private void minimize(){
+
+        if(myService.getMediaPlay() != null){
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+//                            Build.VERSION_CODE.N이상일 경우 기본 PIP모드 가능
+//                            enterPictureInPictureMode();
+
+                Rational aspectRatio = new Rational(myService.getMediaPlay().getVideoWidth(), myService.getMediaPlay().getVideoHeight());
+                PictureInPictureParams build = ((PictureInPictureParams.Builder)pictureInPictureParamsBuilder).setAspectRatio(aspectRatio).build();
+                enterPictureInPictureMode(build);
+
+
+                Log.e("TAG", "Activity 에서 미디어플레이어의 size width :: " + myService.getMediaPlay().getVideoWidth() + "  height  :: " + myService.getMediaPlay().getVideoHeight());
+            }
+        }
+
     }
 
     SurfaceTexture surfaceTexture;
