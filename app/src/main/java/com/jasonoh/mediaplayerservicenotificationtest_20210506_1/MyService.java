@@ -104,8 +104,8 @@ public class MyService extends Service {
         }
 
 //        todo :: service 관련 참고 사이트   https://developer88.tistory.com/36
-//        return START_STICKY; //메모리 문제로 서비스를 강제로 kill 시켰을때 메모리 문제가 해결되는 자동으로 서비스를 다시 실행해달라는 의미 (media에서 적합)
-        return START_REDELIVER_INTENT; //전달된 intent 값까지 모두 유지, 파일다운로드와 같은 중간에 값을 잃으면 안되는 경우에 적합
+        return START_STICKY; //메모리 문제로 서비스를 강제로 kill 시켰을때 메모리 문제가 해결되는 자동으로 서비스를 다시 실행해달라는 의미 (media에서 적합)
+//        return START_REDELIVER_INTENT; //전달된 intent 값까지 모두 유지, 파일다운로드와 같은 중간에 값을 잃으면 안되는 경우에 적합
     }
 
     // stopService() 를 통해 서비스가 종료되면 자동으로 실행되는 메소드
@@ -134,6 +134,9 @@ public class MyService extends Service {
 
     public void initMediaPlayer(SurfaceTexture surfaceTexture){
        try{
+
+           url3 ="android.resource://" + getPackageName() + "/raw/sample_mp4_file";
+
            mp.setSurface(new Surface(surfaceTexture));
            Uri uri = Uri.parse(url2);
            mp.setDataSource(MyService.this, uri);
@@ -147,8 +150,6 @@ public class MyService extends Service {
 
     //영상 재생기능
     public void playVideo(SurfaceTexture surfaceTexture) {
-
-        url3 ="android.resource://" + getPackageName() + "/raw/sample_mp4_file";
 
         if(mp == null) {
             try{
@@ -175,30 +176,9 @@ public class MyService extends Service {
 //        Toast.makeText(this,  mp.getDuration() + "", Toast.LENGTH_SHORT).show();
     }
 
-    private Object pictureInPictureParamsBuilder;
-    {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            pictureInPictureParamsBuilder = new PictureInPictureParams.Builder();
-        }else{
-            pictureInPictureParamsBuilder = null;
-        }
-    }
-
     public void playVideo(){
         mp.start(); //처음 실행 또는 이어하기(resume)
 //        Toast.makeText(this,  mp.isPlaying() + "", Toast.LENGTH_SHORT).show();
-
-        // todo  ::  임시로 서비스에서 실행시 pip모드 실행
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-//                            Build.VERSION_CODE.N이상일 경우 기본 PIP모드 가능
-//                            enterPictureInPictureMode();
-
-            Log.e("TAG", "Service에서 미디어플레이어의 size width :: " + mp.getVideoWidth() + "  height  :: " + mp.getVideoHeight());
-
-            Rational aspectRatio = new Rational(mp.getVideoWidth(), mp.getVideoHeight());
-            PictureInPictureParams build = ((PictureInPictureParams.Builder)pictureInPictureParamsBuilder).setAspectRatio(aspectRatio).build();
-//            enterPictureInPictureMode(build);
-        }
     }
 
     MediaPlayer.OnPreparedListener listener = new MediaPlayer.OnPreparedListener() {

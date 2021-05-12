@@ -17,7 +17,8 @@
             android:supportsPictureInPicture="true"
             android:resizeableActivity="true"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:theme="@style/Theme.MediaPlayerServiceNotificationTest_20210506_1_MainActivity">
+            android:theme="@style/Theme.MediaPlayerServiceNotificationTest_20210506_1_MainActivity"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW"/>

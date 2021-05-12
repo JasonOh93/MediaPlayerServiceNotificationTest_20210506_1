@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Rational;
 import android.view.TextureView;
@@ -39,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     Handler handler = new Handler();
 
     MyService myService;
+
+    boolean isPipMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +76,14 @@ public class MainActivity extends AppCompatActivity {
         if(myService == null) {  //연결되어 있는 뮤직서비스가 없다면?
             Intent intent = new Intent( this, MyService.class );
             intent.setAction("com.jasonoh.action.PLAY");
+            // todo :: android 8.0(26)부터는 그냥 startService를 실행하면 오류가 발생한다.
+            //  이때는 foregroundService를 실행해주어야 한다!!
+            //  참고 사이트 :: https://m.blog.naver.com/PostView.nhn?blogId=websearch&logNo=221715003220&proxyReferer=https:%2F%2Fwww.google.com%2F
+            //   https://myseong.tistory.com/27
+            //   https://jizard.tistory.com/217
+//            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+//                startForegroundService(intent);
+//            } else startService( intent ); //일단 서비스 객체 생성!! [ 만약 서비스 객체가 없다면 만들고 onStartCommand() 가 발동, 있다면 생성은 안하고 onStartCommand()만 발동함 ]
             startService( intent ); //일단 서비스 객체 생성!! [ 만약 서비스 객체가 없다면 만들고 onStartCommand() 가 발동, 있다면 생성은 안하고 onStartCommand()만 발동함 ]
 
             //만들어진 서비스 객체와 연결
@@ -87,6 +98,10 @@ public class MainActivity extends AppCompatActivity {
                 pictureInPictureParamsBuilder = null;
             }
 
+        }
+
+        if(myService != null && isPipMode){
+            minimize();
         }
 
     }// onResume
@@ -106,10 +121,14 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, MyService.class);
             intent.setAction("com.jasonoh.action.PLAY");
             intent.putExtra(MyService.MESSAGE_KEY, true);
+//            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent);
+//            else startService(intent);
             startService(intent);
 
             // PIP 모드
-            minimize();
+            // todo :: MainActivity Error -> onDestroy 될때 pip mode error
+            //  error reason -> Activity must be resumed to enter picture-in-picture
+//            minimize();
         }
 
     } // onDestroy method
@@ -231,9 +250,24 @@ public class MainActivity extends AppCompatActivity {
         if(isInPictureInPictureMode){
             // Hide the full-screen UI (controls, etc.) while in picture-in-picture mode.
             Log.e("TAG", "media player PIP모드 true 인가?   :::   " + isInPictureInPictureMode);
+            isPipMode = isInPictureInPictureMode;
+
+//            https://stackoverflow.com/questions/54775018/android-picture-in-picture-scale-view
+//            pip 화면 사이즈 조정관련 해서 stackoverflow 내용
+//            Configuration configuration = getResources().getConfiguration();
+//            DisplayMetrics metrics = getResources().getDisplayMetrics();
+//            Log.e("TAG", "MainActivity   --->>>   configuration의 densityDpi  '1' " + configuration.densityDpi);
+//            configuration.densityDpi = configuration.densityDpi / 3;
+//            Log.e("TAG", "MainActivity   --->>>   configuration의 densityDpi  '2' " + configuration.densityDpi);
+//            getBaseContext().getResources().updateConfiguration(configuration, metrics);
         }else{
             // Restore the full-screen UI.
             Log.e("TAG", "media player PIP모드 false 인가?   :::   " + isInPictureInPictureMode);
+            isPipMode = isInPictureInPictureMode;
+//            Configuration configuration = getResources().getConfiguration();
+//            DisplayMetrics metrics = getResources().getDisplayMetrics();
+//            configuration.densityDpi = getResources().getConfiguration().densityDpi;
+//            getBaseContext().getResources().updateConfiguration(configuration, metrics);
         }
     }
 
@@ -244,10 +278,13 @@ public class MainActivity extends AppCompatActivity {
 //                            Build.VERSION_CODE.N이상일 경우 기본 PIP모드 가능
 //                            enterPictureInPictureMode();
 
+//                PictureInPictureParams build = ((PictureInPictureParams.Builder)pictureInPictureParamsBuilder).build();
+
                 Rational aspectRatio = new Rational(myService.getMediaPlay().getVideoWidth(), myService.getMediaPlay().getVideoHeight());
                 PictureInPictureParams build = ((PictureInPictureParams.Builder)pictureInPictureParamsBuilder).setAspectRatio(aspectRatio).build();
                 enterPictureInPictureMode(build);
 
+//                isPipMode = true;
 
                 Log.e("TAG", "Activity 에서 미디어플레이어의 size width :: " + myService.getMediaPlay().getVideoWidth() + "  height  :: " + myService.getMediaPlay().getVideoHeight());
             }
