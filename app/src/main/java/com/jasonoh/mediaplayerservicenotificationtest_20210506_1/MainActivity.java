@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Rational;
@@ -21,6 +22,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     String url, url2, url3;
     ProgressBar progressBar;
 
+    RelativeLayout rlWrapVideo;
+
     Handler handler = new Handler();
 
     MyService myService;
@@ -52,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
         ttvVideo = findViewById(R.id.ttv_video);
         tvTime = findViewById(R.id.tv_time);
         skbVideo = findViewById(R.id.skb_video);
+
+        rlWrapVideo = findViewById(R.id.rl_wrap_video);
 
 //        ttvVideo.setSurfaceTextureListener(ttvVideoListener);
 
@@ -171,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         int min2 = myService.getMediaPlay().getCurrentPosition()/60000;
         int sec2 = (myService.getMediaPlay().getCurrentPosition()-60000*min2)/1000;
 
-        tvTime.setText(min2 + " 분" + sec2 + " 초  //  " + min + " 분" + sec + " 초");
+        tvTime.setText(min2 + "분 " + sec2 + "초  ::  " + min + "분 " + sec + "초");
 
         if(myService.getMediaPlay().isPlaying()){
 
@@ -206,16 +212,27 @@ public class MainActivity extends AppCompatActivity {
 
             myService.playVideo(surfaceTexture);
 
-            return myService.mp;
+            return myService.getMediaPlay().isPlaying();
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(result ->{
 
-                    Log.e("TAG", result.isPlaying() + "   :::   ddd");
-                    Log.e("TAG", myService.getMediaPlay() + "   :::   ddd");
+                    Log.e("TAG", "MainActivity :: " + result + "   :::   ddd");
+                    Log.e("TAG", "MainActivity :: " + myService.getMediaPlay() + "   :::   ddd");
 
-                    if(myService.getMediaPlay() != null){
+                    // todo :: MainActivity :: 편법..... 실제로 이렇게 하면 안될거 같은 느낌...
+                    //  이 방법보다는 원천적으로 메모리를 안잡아 먹는 방법을 찾아야 한다.
+                    //  이 방법은 영상 시작하기 위해서 1초있다가 다시 메소드를 발동시키는 작업이다.
+                    if(!result){
+                        new Thread(()->{
+                            SystemClock.sleep(1000);
+                            BackgroundTask();
+                        }).start();
+                    }
+
+
+                    if(myService.getMediaPlay() != null && myService.getMediaPlay().isPlaying()){
 
 //                        todo :: 영상이 끝나면 발동하는 listener
 
@@ -227,11 +244,11 @@ public class MainActivity extends AppCompatActivity {
                         progressBar.setVisibility(View.GONE);
 //                        todo :: 여기서 명시적으로 start를 해줘야만 하는지는 추후 알아봐야 하는 과정...
                         myService.getMediaPlay().start();
-                        Log.e("TAG", myService.getMediaPlay().isPlaying() + "   rx 자바에서 플레이 중인지??");
+                        Log.e("TAG",  "MainActivity :: " +myService.getMediaPlay().isPlaying() + "   rx 자바에서 플레이 중인지??");
 //                        initSeekBar();
 
                         skbVideo.setMax(myService.getMediaPlay().getDuration());
-                        Log.e("TAG", myService.getMediaPlay().getDuration() + ""); // 125952
+                        Log.e("TAG", "MainActivity :: " + myService.getMediaPlay().getDuration() + ""); // 125952
                         seekBarPlay();
                     }
                     backgroundTask.dispose();
@@ -240,6 +257,14 @@ public class MainActivity extends AppCompatActivity {
                     findViewById(R.id.btn_start_pip).setOnClickListener(v->{
                         minimize();
                     });
+
+//                   todo :: 화면에 보여질때 pip 모드로 진입하기 전에
+//                     하지만 영상을 읽어오는 작업보다 먼저 실행이 되는 듯해서 start 버튼을 클릭하지 않으면 화면 사이즈가 맞추어지지 않는다...
+//                     당연한 결과.. 여기서 아무리 AsyncTask를 돌려도 위에서 메소드로 보내는 작업이기때문에 여기서는 보내면 끝났기 때문에 속도적인 문제가 발생한다.
+                    ttvVideo.setLayoutParams(new RelativeLayout.LayoutParams(rlWrapVideo.getWidth(), myService.getMediaPlay().getVideoHeight()));
+
+                    Log.e("TAG", "MainActivity ::  height  " + myService.getMediaPlay().getVideoHeight() + "  width  : " + myService.getMediaPlay().getVideoWidth());
+
                 }
                 );
     }
@@ -249,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
         if(isInPictureInPictureMode){
             // Hide the full-screen UI (controls, etc.) while in picture-in-picture mode.
-            Log.e("TAG", "media player PIP모드 true 인가?   :::   " + isInPictureInPictureMode);
+            Log.e("TAG", "MainActivity ::  media player PIP모드 true 인가?   :::   " + isInPictureInPictureMode);
             isPipMode = isInPictureInPictureMode;
 
 //            https://stackoverflow.com/questions/54775018/android-picture-in-picture-scale-view
@@ -262,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
 //            getBaseContext().getResources().updateConfiguration(configuration, metrics);
         }else{
             // Restore the full-screen UI.
-            Log.e("TAG", "media player PIP모드 false 인가?   :::   " + isInPictureInPictureMode);
+            Log.e("TAG", "MainActivity ::  media player PIP모드 false 인가?   :::   " + isInPictureInPictureMode);
             isPipMode = isInPictureInPictureMode;
 //            Configuration configuration = getResources().getConfiguration();
 //            DisplayMetrics metrics = getResources().getDisplayMetrics();
@@ -280,13 +305,16 @@ public class MainActivity extends AppCompatActivity {
 
 //                PictureInPictureParams build = ((PictureInPictureParams.Builder)pictureInPictureParamsBuilder).build();
 
+//                Rational aspectRatio = new Rational(ttvVideo.getWidth(), ttvVideo.getHeight());
                 Rational aspectRatio = new Rational(myService.getMediaPlay().getVideoWidth(), myService.getMediaPlay().getVideoHeight());
                 PictureInPictureParams build = ((PictureInPictureParams.Builder)pictureInPictureParamsBuilder).setAspectRatio(aspectRatio).build();
                 enterPictureInPictureMode(build);
 
+//                setPictureInPictureParams(build);
+
 //                isPipMode = true;
 
-                Log.e("TAG", "Activity 에서 미디어플레이어의 size width :: " + myService.getMediaPlay().getVideoWidth() + "  height  :: " + myService.getMediaPlay().getVideoHeight());
+                Log.e("TAG", "MainActivity ::  Activity 에서 미디어플레이어의 size width :: " + ttvVideo.getWidth() + "  height  :: " + ttvVideo.getHeight());
             }
         }
 
@@ -307,8 +335,10 @@ public class MainActivity extends AppCompatActivity {
 
 //                    todo :: 코틀린에서 async await 하는 방법!!
 //                    Coroutine.Companion.BackgroundTask(myService, surfaceTexture, MainActivity.this);
-//                    Log.e("TAG",  "코틀린에서 온 값");
+//                    Log.e("TAG",  "MainActivity ::  코틀린에서 온 값");
 
+                    // todo  ::  TextureView에서 앱 시작시 바로 재생시킬때 실행하는 메소드
+                    ttvVideo.setLayoutParams(new RelativeLayout.LayoutParams(rlWrapVideo.getWidth(), rlWrapVideo.getMinimumHeight()));
                     BackgroundTask();
 
 //                    Toast.makeText(MainActivity.this, HelloKt.formatMessage("안녕하세요") + " asdf ",  Toast.LENGTH_SHORT).show();
@@ -318,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
 //                        progressBar.setVisibility(View.GONE);
 ////                        initSeekBar();
 //                        skbVideo.setMax(myService.getMediaPlay().getDuration());
-//                        Log.e("TAG", myService.getMediaPlay().getDuration() + ""); // 0
+//                        Log.e("TAG", "MainActivity :: " + myService.getMediaPlay().getDuration() + ""); // 0
 //                        seekBarPlay();
 //                    }
                 }
@@ -348,13 +378,13 @@ public class MainActivity extends AppCompatActivity {
             MyService.MyBinder binder = (MyService.MyBinder)service;
             myService = binder.getService(); //리턴해준 서비스 객체 주소 참조
 
-            Log.e("TAG", "서비스와 연결 완료");
+            Log.e("TAG", "MainActivity ::  서비스와 연결 완료");
 
             Toast.makeText(MainActivity.this, " 서비스와 연결되었습니다. ", Toast.LENGTH_SHORT).show();
             ttvVideo.setSurfaceTextureListener(ttvVideoListener);
 
 //            todo ::/// 이유를 확인 못함.. 왜 여기서 안되는거지..????? serfaceTexture가 null인가?? -- 위치 바꿈!! SurfaceTextureListener로 위치 변경후 됨
-//            Log.e("TAG", surfaceTexture.toString() + ""); // null
+//            Log.e("TAG", "MainActivity :: " + surfaceTexture.toString() + ""); // null
 //            if(myService != null && surfaceTexture != null){
 //                myService.playVideo(surfaceTexture);
 //
@@ -379,6 +409,7 @@ public class MainActivity extends AppCompatActivity {
 //                    todo :: 스타트 버튼 누를시에 !!!  MainActivity
 
                     BackgroundTask();
+//                    myService.playVideo();
 
 //                    myService.playVideo(surfaceTexture);
 
@@ -387,12 +418,12 @@ public class MainActivity extends AppCompatActivity {
 //             2. onDestroy 되었을때 재실행시 소리는 나는데 영상이 안나옴
 
 //                    if(myService.getMediaPlay() != null){
-//                        Log.e("TAG", myService.getMediaPlay().isPlaying() + "스타트 버튼 클릭시 실행되는지??");
+//                        Log.e("TAG", "MainActivity :: " + myService.getMediaPlay().isPlaying() + "스타트 버튼 클릭시 실행되는지??");
 //                        myService.getMediaPlay().start();
 //                        skbVideo.setMax(myService.getMediaPlay().getDuration());
 //                        seekBarPlay();
 //                        progressBar.setVisibility(View.GONE);
-//                        Log.e("TAG", myService.getMediaPlay().isPlaying() + "스타트 버튼 클릭시 실행되는지??");
+//                        Log.e("TAG", "MainActivity :: " + myService.getMediaPlay().isPlaying() + "스타트 버튼 클릭시 실행되는지??");
 //                    }
 
                 }

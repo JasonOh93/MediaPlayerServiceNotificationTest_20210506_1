@@ -48,21 +48,11 @@ public class MyService extends Service {
             case "com.jasonoh.action.PLAY" :
                 if(mp == null){
                     mp = new MediaPlayer();
-
-                    try{
-//                        Uri uri = Uri.parse(url3);
-//                        mp.setDataSource(MyService.this, uri);
-//                        mp.setLooping(false);
-//                        mp.prepareAsync();
-//                        mp.setOnPreparedListener(listener);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                    }
                 }
 
                 if(intent.getExtras() != null){
                     if(intent.getExtras().getBoolean(MyService.MESSAGE_KEY)){
-                        Log.e("TAG", "notification not null");
+                        Log.e("TAG", "MyService:  notification not null");
 
                         NotificationManager notificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                         NotificationCompat.Builder builder = null;
@@ -143,8 +133,17 @@ public class MyService extends Service {
            mp.setLooping(false);
            mp.prepareAsync();
            mp.setOnPreparedListener(listener);
+
+           Log.e("TAG", "MyService: initMediaPlayer   " + mp.isPlaying());
        } catch (Exception e){
            e.printStackTrace();
+
+           try{
+               if(mp != null && !mp.isPlaying()) mp.start();
+           }catch (Exception e2){
+               e2.printStackTrace();
+           }
+
        }
     }// initMediaPlayer
 
@@ -158,15 +157,15 @@ public class MyService extends Service {
                 mp = new MediaPlayer();
                 initMediaPlayer(surfaceTexture);
 
-                Log.e("TAG", "mp == null 일때 mp.islplaying??   ::   " + mp.isPlaying());
+                Log.e("TAG", "MyService:  mp == null 일때 mp.islplaying??   ::   " + mp.isPlaying());
             } catch (Exception e){
                 e.printStackTrace();
             }
         }else{
             try{
-                Log.e("TAG", "mp != null;");
+                Log.e("TAG", "MyService:  mp != null;");
                 initMediaPlayer(surfaceTexture);
-                Log.e("TAG", "mp != null 일때 mp.islplaying??   ::   " + mp.isPlaying());
+                Log.e("TAG", "MyService:  mp != null 일때 mp.islplaying??   ::   " + mp.isPlaying());
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -178,13 +177,12 @@ public class MyService extends Service {
 
     public void playVideo(){
         mp.start(); //처음 실행 또는 이어하기(resume)
-//        Toast.makeText(this,  mp.isPlaying() + "", Toast.LENGTH_SHORT).show();
     }
 
     MediaPlayer.OnPreparedListener listener = new MediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(MediaPlayer mp) {
-            Toast.makeText(MyService.this, "prepared", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MyService.this, "동영상 재생이 가능합니다.", Toast.LENGTH_SHORT).show();
             playVideo();
 //            mp.start();
 //            Toast.makeText(MyService.this, mp.isPlaying() + "  ::  aaa", Toast.LENGTH_SHORT).show();
