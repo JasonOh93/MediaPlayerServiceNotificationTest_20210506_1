@@ -184,12 +184,7 @@ public class MainActivity extends AppCompatActivity {
             try {
 //                Toast.makeText(this, myService.getMediaPlay().getCurrentPosition() + "", Toast.LENGTH_SHORT).show();
 
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        seekBarPlay();
-                    }
-                };
+                Runnable runnable = () -> seekBarPlay();
 //                Handler handler = new Handler();
                 handler.postDelayed(runnable, 1000);
 
