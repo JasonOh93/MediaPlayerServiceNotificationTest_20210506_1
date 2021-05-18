@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
                         progressBar.setVisibility(View.GONE);
 //                        todo :: 여기서 명시적으로 start를 해줘야만 하는지는 추후 알아봐야 하는 과정...
-                        myService.getMediaPlay().start();
+//                        myService.getMediaPlay().start();
                         Log.e("TAG",  "MainActivity :: " +myService.getMediaPlay().isPlaying() + "   rx 자바에서 플레이 중인지??");
 //                        initSeekBar();
 

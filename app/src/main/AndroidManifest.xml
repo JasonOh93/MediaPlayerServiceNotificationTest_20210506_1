@@ -28,7 +28,15 @@
         </activity>
 
         <service android:name=".MyService"
-            android:enabled="true"/>
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="PREV"/>
+                <action android:name="PAUSE"/>
+                <action android:name="NEXT"/>
+                <action android:name="PLAY"/>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

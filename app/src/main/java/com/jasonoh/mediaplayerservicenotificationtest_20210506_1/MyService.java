@@ -25,6 +25,7 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 public class MyService extends Service {
@@ -44,7 +45,8 @@ public class MyService extends Service {
 
     boolean isPlaying = false;
 
-    MediaSession mediaSession;
+    MediaSessionCompat mediaSession;
+    MediaSession mediaSession2;
     androidx.media.app.NotificationCompat.MediaStyle mediaStyle;
 
     @Override
@@ -74,9 +76,10 @@ public class MyService extends Service {
                         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
 
                             // 롤리팝(api 21) 부터 미디어 세션, 스타일이 가능하다
-                            mediaSession = new MediaSession(this, "PlayerService");
+                            mediaSession = new MediaSessionCompat(this, "PlayerService");
+                            mediaSession2 = new MediaSession(this, "PlayerService");
 //                            mediaStyle = new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken());
-                            mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(MediaSessionCompat.Token.fromToken(mediaSession.getSessionToken()));
+                            mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken());
 
                             Log.e("TAG", "MyService  ::  미디어세션 토큰 값  ::  " + mediaSession.getSessionToken().toString());
 
@@ -84,6 +87,12 @@ public class MyService extends Service {
                             NotificationChannel channel = new NotificationChannel("ch01", "channel #01", NotificationManager.IMPORTANCE_LOW);
                             notificationManager.createNotificationChannel( channel );
                             builder = new NotificationCompat.Builder( this, "ch01" );
+//                            builder.setStyle(new Notification.MediaStyle().setMediaSession(mediaSession2.getSessionToken()));
+                            builder.addAction(R.drawable.ic_prev_black, "prev", PendingIntent.getService(this, 99, new Intent("PREV"), 0));
+                            builder.addAction(R.drawable.ic_play_black, "play", PendingIntent.getService(this, 99, new Intent("PLAY"), 0));
+                            builder.addAction(R.drawable.ic_pause_black, "pause", PendingIntent.getService(this, 99, new Intent("PAUSE"), 0));
+                            builder.addAction(R.drawable.ic_next_black, "next", PendingIntent.getService(this, 99, new Intent("NEXT"), 0));
+
                         }else {
                             builder = new NotificationCompat.Builder(this, null);
                         }
@@ -91,10 +100,12 @@ public class MyService extends Service {
                         builder.setSmallIcon( R.drawable.ic_baseline_movie_filter_24 ); //상태표시줄에 보이는 아이콘
                         //확장 상태바[상태표시줄을 드래그하여 아래로 내리면 보이는 알림창]
                         //그 곳에 보이는 설정들
-                        builder.setStyle(mediaStyle);
-                        builder.setContentTitle( "Track title" );
-                        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_baseline_movie_filter_24));
-                        builder.setContentText("백그라운드에서 영상 재생");
+//                        builder.setStyle(mediaStyle);
+                        builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken()));
+                        builder.setContentTitle( "Movie Play" );
+                        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.one_zoro2));
+//                        builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(BitmapFactory.decodeResource(getResources(), R.drawable.ic_baseline_movie_filter_24)).bigLargeIcon(null));
+//                        builder.setContentText("백그라운드에서 영상 재생");
 //                        builder.setSubText( "영상이 보여지는 부분일까?" );
 
                         Intent mMainIntent = new Intent(this, MainActivity.class);
@@ -113,6 +124,31 @@ public class MyService extends Service {
                     }
                 }
 
+                break;
+
+            case "PREV":
+                if(mp!=null && mp.isPlaying()){
+                    mp.seekTo(mp.getCurrentPosition() - 5000);
+                }
+                break;
+
+            case "PAUSE":
+                if(mp!=null && mp.isPlaying()){
+                    mp.pause();
+                }
+                break;
+
+            case "NEXT":
+                if(mp!=null && mp.isPlaying()){
+                    mp.seekTo(mp.getCurrentPosition() + 5000);
+                }
+                break;
+
+            case "PLAY":
+                if(mp!=null && !mp.isPlaying()){
+                    mp.start();
+
+                }
                 break;
         }
 
