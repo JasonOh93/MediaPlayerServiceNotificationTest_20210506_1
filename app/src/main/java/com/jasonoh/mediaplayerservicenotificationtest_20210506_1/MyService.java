@@ -10,13 +10,16 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
+import android.media.MediaMetadata;
 import android.media.MediaPlayer;
 import android.media.session.MediaSession;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.util.Rational;
 import android.view.Surface;
@@ -80,6 +83,27 @@ public class MyService extends Service {
                             mediaSession2 = new MediaSession(this, "PlayerService");
 //                            mediaStyle = new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken());
                             mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken());
+                            mediaSession.setActive(true);
+                            // 비트 연산자 이용 kotlin -> or == java -> |
+                            mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                                    .setActions(
+                                            PlaybackStateCompat.ACTION_PLAY
+                                                    | PlaybackStateCompat.ACTION_PAUSE
+                                                    | PlaybackStateCompat.ACTION_SEEK_TO
+                                                    | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                                                    | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                                                    | PlaybackStateCompat.ACTION_PLAY_PAUSE
+                                    )
+                                    .build()
+                            );
+                            mediaSession.setMetadata(
+                                    new MediaMetadataCompat.Builder()
+                                    .putString(MediaMetadata.METADATA_KEY_TITLE, "Movie Play")
+                                    .putString(MediaMetadata.METADATA_KEY_ARTIST, "currentTrack.artist")
+//                                    .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, R.drawable.one_zoro2)
+                                    .putLong(MediaMetadata.METADATA_KEY_DURATION, mp.getDuration())
+                                    .build()
+                            );
 
                             Log.e("TAG", "MyService  ::  미디어세션 토큰 값  ::  " + mediaSession.getSessionToken().toString());
 
@@ -87,11 +111,15 @@ public class MyService extends Service {
                             NotificationChannel channel = new NotificationChannel("ch01", "channel #01", NotificationManager.IMPORTANCE_LOW);
                             notificationManager.createNotificationChannel( channel );
                             builder = new NotificationCompat.Builder( this, "ch01" );
-//                            builder.setStyle(new Notification.MediaStyle().setMediaSession(mediaSession2.getSessionToken()));
-                            builder.addAction(R.drawable.ic_prev_black, "prev", PendingIntent.getService(this, 99, new Intent("PREV"), 0));
+                            builder.addAction(R.drawable.ic_prev_black, "", PendingIntent.getService(this, 99, new Intent("PREV"), 0));
                             builder.addAction(R.drawable.ic_play_black, "play", PendingIntent.getService(this, 99, new Intent("PLAY"), 0));
                             builder.addAction(R.drawable.ic_pause_black, "pause", PendingIntent.getService(this, 99, new Intent("PAUSE"), 0));
                             builder.addAction(R.drawable.ic_next_black, "next", PendingIntent.getService(this, 99, new Intent("NEXT"), 0));
+
+                            if(mp != null){
+                                builder.setProgress(mp.getDuration(), mp.getCurrentPosition(), false);
+                                Log.e("TAG", "MyService  ::  Progress  ==  " + mp.getDuration());
+                            }
 
                         }else {
                             builder = new NotificationCompat.Builder(this, null);
@@ -100,10 +128,11 @@ public class MyService extends Service {
                         builder.setSmallIcon( R.drawable.ic_baseline_movie_filter_24 ); //상태표시줄에 보이는 아이콘
                         //확장 상태바[상태표시줄을 드래그하여 아래로 내리면 보이는 알림창]
                         //그 곳에 보이는 설정들
-//                        builder.setStyle(mediaStyle);
-                        builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken()));
+                        builder.setStyle(mediaStyle);
+//                        builder.setStyle(new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken()));
                         builder.setContentTitle( "Movie Play" );
                         builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.one_zoro2));
+
 //                        builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(BitmapFactory.decodeResource(getResources(), R.drawable.ic_baseline_movie_filter_24)).bigLargeIcon(null));
 //                        builder.setContentText("백그라운드에서 영상 재생");
 //                        builder.setSubText( "영상이 보여지는 부분일까?" );
