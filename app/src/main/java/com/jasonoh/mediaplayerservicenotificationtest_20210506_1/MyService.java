@@ -84,8 +84,12 @@ public class MyService extends Service {
 //                            mediaStyle = new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken());
                             mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mediaSession.getSessionToken());
                             mediaSession.setActive(true);
+
+                            // todo :: Android 10 부터 Notification을 사용할때 SeekBar가 표시 된다.
+                            //  https://ddolcat.tistory.com/619
                             // 비트 연산자 이용 kotlin -> or == java -> |
                             mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                                    .setState(PlaybackStateCompat.STATE_PLAYING, mp.getCurrentPosition(), 1.0f)
                                     .setActions(
                                             PlaybackStateCompat.ACTION_PLAY
                                                     | PlaybackStateCompat.ACTION_PAUSE
@@ -216,7 +220,7 @@ public class MyService extends Service {
            url3 ="android.resource://" + getPackageName() + "/raw/sample_mp4_file";
 
            mp.setSurface(new Surface(surfaceTexture));
-           Uri uri = Uri.parse(url2);
+           Uri uri = Uri.parse(url3);
            mp.setDataSource(MyService.this, uri);
            mp.setLooping(false);
            mp.prepareAsync();
