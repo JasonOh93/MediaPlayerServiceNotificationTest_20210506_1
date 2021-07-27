@@ -138,7 +138,7 @@ public class MyService extends Service {
                         builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.one_zoro2));
 
 //                        builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(BitmapFactory.decodeResource(getResources(), R.drawable.ic_baseline_movie_filter_24)).bigLargeIcon(null));
-//                        builder.setContentText("백그라운드에서 영상 재생");
+                        builder.setContentText("Big Bug Bunny");
 //                        builder.setSubText( "영상이 보여지는 부분일까?" );
 
                         Intent mMainIntent = new Intent(this, MainActivity.class);
@@ -220,7 +220,7 @@ public class MyService extends Service {
            url3 ="android.resource://" + getPackageName() + "/raw/sample_mp4_file";
 
            mp.setSurface(new Surface(surfaceTexture));
-           Uri uri = Uri.parse(url3);
+           Uri uri = Uri.parse(url2);
            mp.setDataSource(MyService.this, uri);
            mp.setLooping(false);
            mp.prepareAsync();

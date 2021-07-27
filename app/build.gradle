@@ -50,7 +50,7 @@ dependencies {
 //    kotlin 혼용 사용
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.0.0'
 //    kotlin coroutine 사용을 위한 라이브러리
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.0'
 
     implementation "androidx.media:media:1.2.0"
