@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.PictureInPictureParams;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -59,7 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
         rlWrapVideo = findViewById(R.id.rl_wrap_video);
 
-//        ttvVideo.setSurfaceTextureListener(ttvVideoListener);
+        // todo (2021.07.27) :: Android 10에서 이유는 모르겠지만 자동으로 시작(Play)이 안되고 여기서 먼저 형성해주고 start를 눌러주어야 영상이 나오는 문제가 있다..
+        ttvVideo.setSurfaceTextureListener(ttvVideoListener);
 
         initSeekBar();
 
@@ -109,6 +111,8 @@ public class MainActivity extends AppCompatActivity {
         if(myService != null && isPipMode){
             minimize();
         }
+
+//        ttvVideo.setSurfaceTextureListener(ttvVideoListener);
 
     }// onResume
 
@@ -325,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "surface 객체 형성", Toast.LENGTH_SHORT).show();
                 surfaceTexture = surface;
 
-                if(myService != null && surfaceTexture != null){
+                if(myService != null){
 //                    myService.playVideo(surfaceTexture);
 
 //                    todo :: 코틀린에서 async await 하는 방법!!
@@ -376,7 +380,11 @@ public class MainActivity extends AppCompatActivity {
             Log.e("TAG", "MainActivity ::  서비스와 연결 완료");
 
             Toast.makeText(MainActivity.this, " 서비스와 연결되었습니다. ", Toast.LENGTH_SHORT).show();
-            ttvVideo.setSurfaceTextureListener(ttvVideoListener);
+            setSurfaceTexture();
+            // todo 2021.07.28 :: 하단의 것이 제대로 동작 안함... android 10에서
+//            ttvVideo.setSurfaceTextureListener(ttvVideoListener);
+//            // todo 2021.07.27 :: 화면 사이즈를 감싸고 있는 뷰의 크기만큼
+//            ttvVideo.setLayoutParams(new RelativeLayout.LayoutParams(rlWrapVideo.getWidth(), rlWrapVideo.getMinimumHeight()));
 
 //            todo ::/// 이유를 확인 못함.. 왜 여기서 안되는거지..????? serfaceTexture가 null인가?? -- 위치 바꿈!! SurfaceTextureListener로 위치 변경후 됨
 //            Log.e("TAG", "MainActivity :: " + surfaceTexture.toString() + ""); // null
@@ -391,11 +399,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onServiceDisconnected(ComponentName name) {
-
-        }
+        public void onServiceDisconnected(ComponentName name) { }
     };
 
+    public void setSurfaceTexture(){
+        ttvVideo.setSurfaceTextureListener(ttvVideoListener);
+        // todo 2021.07.27 :: 화면 사이즈를 감싸고 있는 뷰의 크기만큼
+        ttvVideo.setLayoutParams(new RelativeLayout.LayoutParams(rlWrapVideo.getWidth(), rlWrapVideo.getMinimumHeight()));
+    }
+
+    @SuppressLint("NonConstantResourceId")
     public void clickBtn(View view) {
         switch (view.getId()){
             case R.id.btn_start:

@@ -16,7 +16,7 @@
         <TextureView
             android:id="@+id/ttv_video"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="wrap_content"/>
 
         <ProgressBar
             android:id="@+id/pgb_video"

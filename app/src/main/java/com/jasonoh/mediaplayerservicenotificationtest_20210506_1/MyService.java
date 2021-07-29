@@ -66,6 +66,16 @@ public class MyService extends Service {
             case "com.jasonoh.action.PLAY" :
                 if(mp == null){
                     mp = new MediaPlayer();
+                }else{
+//                    try{
+//                        Uri uri = Uri.parse(url2);
+//                        mp.setDataSource(MyService.this, uri);
+//                        mp.setLooping(false);
+//                        mp.prepareAsync();
+//                        mp.setOnPreparedListener(listener);
+//                    }catch (Exception e){
+//                        e.printStackTrace();
+//                    }
                 }
 
                 if(intent.getExtras() != null){
